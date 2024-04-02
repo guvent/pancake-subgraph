@@ -192,20 +192,21 @@ export function handleBurn(event: BurnEvent): void {
   pool.txCount = pool.txCount.plus(ONE_BI);
 
   // Update TVL values.
-  let oldPoolTotalValueLockedETH = pool.totalValueLockedETH;
-  let oldPoolTVLETHUntracked = pool.totalValueLockedETHUntracked;
-  token0.totalValueLocked = token0.totalValueLocked.minus(amount0);
-  token1.totalValueLocked = token1.totalValueLocked.minus(amount1);
-  pool.totalValueLockedToken0 = pool.totalValueLockedToken0.minus(amount0);
-  pool.totalValueLockedToken1 = pool.totalValueLockedToken1.minus(amount1);
-  updateDerivedTVLAmounts(
-    pool as Pool,
-    factory as Factory,
-    token0 as Token,
-    token1 as Token,
-    oldPoolTotalValueLockedETH,
-    oldPoolTVLETHUntracked
-  );
+  // commented to avoid double counting as burn event is emitted with same amount
+  // let oldPoolTotalValueLockedETH = pool.totalValueLockedETH;
+  // let oldPoolTVLETHUntracked = pool.totalValueLockedETHUntracked;
+  // token0.totalValueLocked = token0.totalValueLocked.minus(amount0);
+  // token1.totalValueLocked = token1.totalValueLocked.minus(amount1);
+  // pool.totalValueLockedToken0 = pool.totalValueLockedToken0.minus(amount0);
+  // pool.totalValueLockedToken1 = pool.totalValueLockedToken1.minus(amount1);
+  // updateDerivedTVLAmounts(
+  //   pool as Pool,
+  //   factory as Factory,
+  //   token0 as Token,
+  //   token1 as Token,
+  //   oldPoolTotalValueLockedETH,
+  //   oldPoolTVLETHUntracked
+  // );
 
   // Pools liquidity tracks the currently active liquidity given pools current tick.
   // We only want to update it on burn if the position being burnt includes the current tick.
@@ -555,15 +556,21 @@ export function handleCollect(event: CollectEvent): void {
     token1 as Token
   );
 
-  // commented to avoid double counting as burn event is emitted with same amount
-  // // Adjust pool TVL based on amount collected.
-  // let oldPoolTVLETH = pool.totalValueLockedETH;
-  // let oldPoolTVLETHUntracked = pool.totalValueLockedETHUntracked;
-  // pool.totalValueLockedToken0 = pool.totalValueLockedToken0.minus(amount0);
-  // pool.totalValueLockedToken1 = pool.totalValueLockedToken1.minus(amount1);
-  // token0.totalValueLocked = token0.totalValueLocked.minus(amount0);
-  // token1.totalValueLocked = token1.totalValueLocked.minus(amount1);
-  // updateDerivedTVLAmounts(pool as Pool, factory as Factory, oldPoolTVLETH, oldPoolTVLETHUntracked);
+  // Adjust pool TVL based on amount collected.
+  let oldPoolTotalValueLockedETH = pool.totalValueLockedETH;
+  let oldPoolTVLETHUntracked = pool.totalValueLockedETHUntracked;
+  pool.totalValueLockedToken0 = pool.totalValueLockedToken0.minus(amount0);
+  pool.totalValueLockedToken1 = pool.totalValueLockedToken1.minus(amount1);
+  token0.totalValueLocked = token0.totalValueLocked.minus(amount0);
+  token1.totalValueLocked = token1.totalValueLocked.minus(amount1);
+  updateDerivedTVLAmounts(
+    pool as Pool,
+    factory as Factory,
+    token0 as Token,
+    token1 as Token,
+    oldPoolTotalValueLockedETH,
+    oldPoolTVLETHUntracked
+  );
 
   // Update aggregate fee collection values.
   pool.collectedFeesToken0 = pool.collectedFeesToken0.plus(amount0);
