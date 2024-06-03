@@ -34,16 +34,35 @@ import { updateDerivedTVLAmounts } from "../utils/tvl";
 export function handleInitialize(event: Initialize): void {
   // update pool sqrt price and tick
   let pool = Pool.load(event.address.toHexString());
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
+
   pool.sqrtPrice = event.params.sqrtPriceX96;
   pool.tick = BigInt.fromI32(event.params.tick);
   pool.save();
 
   // update token prices
   let token0 = Token.load(pool.token0);
+  if (token0 === null) {
+    log.error("*** Could Not Load Token 0", []);
+    return;
+  }
+
   let token1 = Token.load(pool.token1);
+  if (token1 === null) {
+    log.error("*** Could Not Load Token 1", []);
+    return;
+  }
 
   // update ETH price now that prices could have changed
   let bundle = Bundle.load("1");
+  if (bundle === null) {
+    log.error("*** Could Not Load Bundle", []);
+    return;
+  }
+
   bundle.ethPriceUSD = getEthPriceInUSD();
   bundle.save();
 
@@ -59,12 +78,36 @@ export function handleInitialize(event: Initialize): void {
 
 export function handleMint(event: MintEvent): void {
   let bundle = Bundle.load("1");
+  if (bundle === null) {
+    log.error("*** Could Not Load Bundle", []);
+    return;
+  }
+
   let poolAddress = event.address.toHexString();
   let pool = Pool.load(poolAddress);
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
+
   let factory = Factory.load(FACTORY_ADDRESS);
+  if (factory === null) {
+    log.error("*** Could Not Load Factory", []);
+    return;
+  }
 
   let token0 = Token.load(pool.token0);
+  if (token0 === null) {
+    log.error("*** Could Not Load Token 0", []);
+    return;
+  }
+
   let token1 = Token.load(pool.token1);
+  if (token1 === null) {
+    log.error("*** Could Not Load Token 1", []);
+    return;
+  }
+
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);
   let amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals);
 
@@ -132,7 +175,16 @@ export function handleMint(event: MintEvent): void {
   let upperTickId = poolAddress + "#" + BigInt.fromI32(event.params.tickUpper).toString();
 
   let lowerTick = Tick.load(lowerTickId);
+  if (lowerTick === null) {
+    log.error("*** Could Not Load Lower Tick", []);
+    return;
+  }
+
   let upperTick = Tick.load(upperTickId);
+  if (upperTick === null) {
+    log.error("*** Could Not Load Upper Tick", []);
+    return;
+  }
 
   if (lowerTick === null) {
     lowerTick = createTick(lowerTickId, lowerTickIdx, pool.id, event);
@@ -166,18 +218,42 @@ export function handleMint(event: MintEvent): void {
   mint.save();
 
   // Update inner tick vars and save the ticks
-  updateTickFeeVarsAndSave(lowerTick!, event);
-  updateTickFeeVarsAndSave(upperTick!, event);
+  updateTickFeeVarsAndSave(lowerTick, event);
+  updateTickFeeVarsAndSave(upperTick, event);
 }
 
 export function handleBurn(event: BurnEvent): void {
   let bundle = Bundle.load("1");
+  if (bundle === null) {
+    log.error("*** Could Not Load Bundle", []);
+    return;
+  }
+
   let poolAddress = event.address.toHexString();
   let pool = Pool.load(poolAddress);
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
+
   let factory = Factory.load(FACTORY_ADDRESS);
+  if (factory === null) {
+    log.error("*** Could Not Load Factory", []);
+    return;
+  }
 
   let token0 = Token.load(pool.token0);
+  if (token0 === null) {
+    log.error("*** Could Not Load Token 0", []);
+    return;
+  }
+
   let token1 = Token.load(pool.token1);
+  if (token1 === null) {
+    log.error("*** Could Not Load Token 1", []);
+    return;
+  }
+
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);
   let amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals);
 
@@ -239,7 +315,17 @@ export function handleBurn(event: BurnEvent): void {
   let lowerTickId = poolAddress + "#" + BigInt.fromI32(event.params.tickLower).toString();
   let upperTickId = poolAddress + "#" + BigInt.fromI32(event.params.tickUpper).toString();
   let lowerTick = Tick.load(lowerTickId);
+  if (lowerTick === null) {
+    log.error("*** Could Not Load Lower Tick", []);
+    return;
+  }
+
   let upperTick = Tick.load(upperTickId);
+  if (upperTick === null) {
+    log.error("*** Could Not Load Upper Tick", []);
+    return;
+  }
+
   let amount = event.params.amount;
   lowerTick.liquidityGross = lowerTick.liquidityGross.minus(amount);
   lowerTick.liquidityNet = lowerTick.liquidityNet.minus(amount);
@@ -253,8 +339,8 @@ export function handleBurn(event: BurnEvent): void {
   updateTokenDayData(token1 as Token, event);
   updateTokenHourData(token0 as Token, event);
   updateTokenHourData(token1 as Token, event);
-  updateTickFeeVarsAndSave(lowerTick!, event);
-  updateTickFeeVarsAndSave(upperTick!, event);
+  updateTickFeeVarsAndSave(lowerTick, event);
+  updateTickFeeVarsAndSave(upperTick, event);
 
   token0.save();
   token1.save();
@@ -265,8 +351,22 @@ export function handleBurn(event: BurnEvent): void {
 
 export function handleSwap(event: SwapEvent): void {
   let bundle = Bundle.load("1");
+  if (bundle === null) {
+    log.error("*** Could Not Load Bundle", []);
+    return;
+  }
+
   let factory = Factory.load(FACTORY_ADDRESS);
+  if (factory === null) {
+    log.error("*** Could Not Load Factory", []);
+    return;
+  }
+
   let pool = Pool.load(event.address.toHexString());
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
 
   // // hot fix for bad pricing
   // if (pool.id == "0x9663f2ca0454accad3e094448ea6f77443880454") {
@@ -274,9 +374,22 @@ export function handleSwap(event: SwapEvent): void {
   // }
 
   let token0 = Token.load(pool.token0);
-  let token1 = Token.load(pool.token1);
+  if (token0 === null) {
+    log.error("*** Could Not Load Token 0", []);
+    return;
+  }
 
-  let oldTick = pool.tick!;
+  let token1 = Token.load(pool.token1);
+  if (token1 === null) {
+    log.error("*** Could Not Load Token 1", []);
+    return;
+  }
+
+  let oldTick = pool.tick;
+  if (oldTick === null) {
+    log.error("**** Pool Old Tick Invalid", []);
+    return;
+  }
 
   // amounts - 0/1 are token deltas: can be positive or negative
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);
@@ -324,7 +437,7 @@ export function handleSwap(event: SwapEvent): void {
 
   // Update the pool with the new active liquidity, price, and tick.
   pool.liquidity = event.params.liquidity;
-  pool.tick = BigInt.fromI32(event.params.tick as i32);
+  pool.tick = BigInt.fromI32(event.params.tick);
   pool.sqrtPrice = event.params.sqrtPriceX96;
 
   // update token0 data
@@ -400,7 +513,7 @@ export function handleSwap(event: SwapEvent): void {
   swap.amount1 = amount1;
   swap.amountUSD = volumeUSD;
   swap.amountFeeUSD = protocolFeeAmounts.usd;
-  swap.tick = BigInt.fromI32(event.params.tick as i32);
+  swap.tick = BigInt.fromI32(event.params.tick);
   swap.sqrtPriceX96 = event.params.sqrtPriceX96;
   swap.logIndex = event.logIndex;
 
@@ -476,12 +589,17 @@ export function handleSwap(event: SwapEvent): void {
   token1.save();
 
   // Update inner vars of current or crossed ticks
-  let newTick = pool.tick!;
+  let newTick = pool.tick;
+  if (newTick === null) {
+    log.error("**** Pool New Tick Invalid", []);
+    return;
+  }
+
   let tickSpacing = feeTierToTickSpacing(pool.feeTier);
   let modulo = newTick.mod(tickSpacing);
   if (modulo.equals(ZERO_BI)) {
     // Current tick is initialized and needs to be updated
-    loadTickUpdateFeeVarsAndSave(newTick.toI32(), event);
+    loadTickUpdateFeeVarsAndSave(newTick, event);
   }
 
   let numIters = oldTick.minus(newTick).abs().div(tickSpacing);
@@ -495,12 +613,12 @@ export function handleSwap(event: SwapEvent): void {
   } else if (newTick.gt(oldTick)) {
     let firstInitialized = oldTick.plus(tickSpacing.minus(modulo));
     for (let i = firstInitialized; i.le(newTick); i = i.plus(tickSpacing)) {
-      loadTickUpdateFeeVarsAndSave(i.toI32(), event);
+      loadTickUpdateFeeVarsAndSave(i, event);
     }
   } else if (newTick.lt(oldTick)) {
     let firstInitialized = oldTick.minus(modulo);
     for (let i = firstInitialized; i.ge(newTick); i = i.minus(tickSpacing)) {
-      loadTickUpdateFeeVarsAndSave(i.toI32(), event);
+      loadTickUpdateFeeVarsAndSave(i, event);
     }
   }
 }
@@ -508,6 +626,11 @@ export function handleSwap(event: SwapEvent): void {
 export function handleFlash(event: FlashEvent): void {
   // update fee growth
   let pool = Pool.load(event.address.toHexString());
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
+
   let poolContract = PoolABI.bind(event.address);
   let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128();
   let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128();
@@ -525,23 +648,43 @@ function updateTickFeeVarsAndSave(tick: Tick, event: ethereum.Event): void {
   tick.feeGrowthOutside1X128 = tickResult.value3;
   tick.save();
 
-  updateTickDayData(tick!, event);
+  updateTickDayData(tick, event);
 }
 
-function loadTickUpdateFeeVarsAndSave(tickId: i32, event: ethereum.Event): void {
+function loadTickUpdateFeeVarsAndSave(tickId: BigInt, event: ethereum.Event): void {
   let poolAddress = event.address;
   let tick = Tick.load(poolAddress.toHexString().concat("#").concat(tickId.toString()));
   if (tick !== null) {
-    updateTickFeeVarsAndSave(tick!, event);
+    updateTickFeeVarsAndSave(tick, event);
   }
 }
 
 export function handleCollect(event: CollectEvent): void {
   // update fee growth
   let pool = Pool.load(event.address.toHexString());
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
+
   let factory = Factory.load(FACTORY_ADDRESS);
+  if (factory === null) {
+    log.error("*** Could Not Load Factory", []);
+    return;
+  }
+
   let token0 = Token.load(pool.token0);
+  if (token0 === null) {
+    log.error("*** Could Not Load Token 0", []);
+    return;
+  }
+
   let token1 = Token.load(pool.token1);
+  if (token1 === null) {
+    log.error("*** Could Not Load Token 1", []);
+    return;
+  }
+
   let transaction = loadTransaction(event);
 
   // Get formatted amounts collected.
@@ -599,9 +742,27 @@ export function handleCollect(event: CollectEvent): void {
 export function handleCollectProtocol(event: CollectProtocolEvent): void {
   // update fee growth
   let pool = Pool.load(event.address.toHexString());
+  if (pool === null) {
+    log.error("*** Could Not Load Pool", []);
+    return;
+  }
+
   let factory = Factory.load(FACTORY_ADDRESS);
+  if (factory === null) {
+    log.error("*** Could Not Load Factory", []);
+    return;
+  }
+
   let token0 = Token.load(pool.token0);
+  if (token0 === null) {
+    log.error("*** Could Not Load Token 0", []);
+    return;
+  }
   let token1 = Token.load(pool.token1);
+  if (token1 === null) {
+    log.error("*** Could Not Load Token 1", []);
+    return;
+  }
 
   // Get formatted amounts collected.
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);

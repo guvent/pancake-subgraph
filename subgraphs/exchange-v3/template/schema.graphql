@@ -145,7 +145,7 @@ type Pool @entity {
   totalValueLockedUSD: BigDecimal!
   # TVL derived in USD untracked
   totalValueLockedUSDUntracked: BigDecimal!
-    # TVL derived in ETH untracked
+  # TVL derived in ETH untracked
   totalValueLockedETHUntracked: BigDecimal!
   # Fields used to help derived relationship
   liquidityProviderCount: BigInt! # used to detect new exchanges
@@ -286,7 +286,6 @@ type Transaction @entity {
   # timestamp txn was confirmed
   timestamp: BigInt!
   # gas used during txn execution
-  gasUsed: BigInt!
   gasPrice: BigInt!
   # derived values
   mints: [Mint]! @derivedFrom(field: "transaction")

@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BigDecimal } from "@graphprotocol/graph-ts";
+import { BigDecimal, log } from "@graphprotocol/graph-ts";
 import { Bundle, Factory, Pool, Token } from "../generated/schema";
 import { AmountType, getAdjustedAmounts } from "./pricing";
 
@@ -28,6 +28,10 @@ export function updateDerivedTVLAmounts(
   oldPoolTotalValueLockedETHUntracked: BigDecimal
 ): void {
   let bundle = Bundle.load("1");
+  if (bundle === null) {
+    log.error("**** Could Not Load Bundle", []);
+    return;
+  }
 
   // Update token TVL values.
   token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH.times(bundle.ethPriceUSD));

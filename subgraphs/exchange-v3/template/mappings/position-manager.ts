@@ -6,9 +6,9 @@ import {
   NonfungiblePositionManager,
   Transfer,
 } from "../generated/NonfungiblePositionManager/NonfungiblePositionManager";
-import { Bundle, Position, PositionSnapshot, Token } from "../generated/schema";
+import { Position, PositionSnapshot, Token } from "../generated/schema";
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from "../utils/constants";
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { convertTokenToDecimal, loadTransaction } from "../utils";
 
 function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
@@ -88,7 +88,16 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   }
 
   let token0 = Token.load(position.token0);
+  if (token0 == null) {
+    log.error("**** Could Not Load Token 0", []);
+    return;
+  }
+
   let token1 = Token.load(position.token1);
+  if (token1 == null) {
+    log.error("**** Could Not Load Token 1", []);
+    return;
+  }
 
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);
   let amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals);
@@ -97,11 +106,11 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   position.depositedToken0 = position.depositedToken0.plus(amount0);
   position.depositedToken1 = position.depositedToken1.plus(amount1);
 
-  updateFeeVars(position!, event, event.params.tokenId);
+  updateFeeVars(position, event, event.params.tokenId);
 
   position.save();
 
-  savePositionSnapshot(position!, event);
+  savePositionSnapshot(position, event);
 }
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
@@ -113,7 +122,17 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   }
 
   let token0 = Token.load(position.token0);
+  if (token0 == null) {
+    log.error("**** Could Not Load Token 0", []);
+    return;
+  }
+
   let token1 = Token.load(position.token1);
+  if (token1 == null) {
+    log.error("**** Could Not Load Token 1", []);
+    return;
+  }
+
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);
   let amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals);
 
@@ -121,9 +140,9 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   position.withdrawnToken0 = position.withdrawnToken0.plus(amount0);
   position.withdrawnToken1 = position.withdrawnToken1.plus(amount1);
 
-  position = updateFeeVars(position!, event, event.params.tokenId);
+  position = updateFeeVars(position, event, event.params.tokenId);
   position.save();
-  savePositionSnapshot(position!, event);
+  savePositionSnapshot(position, event);
 }
 
 export function handleCollect(event: Collect): void {
@@ -137,13 +156,18 @@ export function handleCollect(event: Collect): void {
   // }
 
   let token0 = Token.load(position.token0);
+  if (token0 == null) {
+    log.error("**** Could Not Load Token 0", []);
+    return;
+  }
+
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals);
   position.collectedFeesToken0 = position.collectedFeesToken0.plus(amount0);
   position.collectedFeesToken1 = position.collectedFeesToken1.plus(amount0);
 
-  position = updateFeeVars(position!, event, event.params.tokenId);
+  position = updateFeeVars(position, event, event.params.tokenId);
   position.save();
-  savePositionSnapshot(position!, event);
+  savePositionSnapshot(position, event);
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -157,5 +181,5 @@ export function handleTransfer(event: Transfer): void {
   position.owner = event.params.to;
   position.save();
 
-  savePositionSnapshot(position!, event);
+  savePositionSnapshot(position, event);
 }
