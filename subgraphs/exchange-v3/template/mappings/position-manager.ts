@@ -89,13 +89,13 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
 
   let token0 = Token.load(position.token0);
   if (token0 == null) {
-    log.error("**** Could Not Load Token 0", []);
+    log.warning("**** Could Not Load Token 0", []);
     return;
   }
 
   let token1 = Token.load(position.token1);
   if (token1 == null) {
-    log.error("**** Could Not Load Token 1", []);
+    log.warning("**** Could Not Load Token 1", []);
     return;
   }
 
@@ -123,13 +123,13 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
   let token0 = Token.load(position.token0);
   if (token0 == null) {
-    log.error("**** Could Not Load Token 0", []);
+    log.warning("**** Could Not Load Token 0", []);
     return;
   }
 
   let token1 = Token.load(position.token1);
   if (token1 == null) {
-    log.error("**** Could Not Load Token 1", []);
+    log.warning("**** Could Not Load Token 1", []);
     return;
   }
 
@@ -157,7 +157,7 @@ export function handleCollect(event: Collect): void {
 
   let token0 = Token.load(position.token0);
   if (token0 == null) {
-    log.error("**** Could Not Load Token 0", []);
+    log.warning("**** Could Not Load Token 0", []);
     return;
   }
 

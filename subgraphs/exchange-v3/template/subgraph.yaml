@@ -8,11 +8,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: zksync-era
+    network: bsc
     source:
-      address: "0x1bb72e0cbbea93c08f535fc7856e0338d7f7a8ab"
+      address: "0x009c4ef7c0e0dd6bd1ea28417c01ea16341367c3"
       abi: Factory
-      startBlock: 8639214
+      startBlock: 34184441
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -37,11 +37,11 @@ dataSources:
           handler: handlePoolCreated
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: zksync-era
+    network: bsc
     source:
-      address: "0xa815e2ed7f7d5b0c49fda367f249232a1b9d2883"
+      address: "0x4f0ece46362310ae93aee49c3713e77455eda1b8"
       abi: NonfungiblePositionManager
-      startBlock: 8640657
+      startBlock: 34184421
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -71,7 +71,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: zksync-era
+    network: bsc
     source:
       abi: Pool
     mapping:

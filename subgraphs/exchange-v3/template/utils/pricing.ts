@@ -2,44 +2,83 @@
 import { ONE_BD, ZERO_BD, ZERO_BI } from "./constants";
 import { Bundle, Pool, Token } from "../generated/schema";
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
-import { exponentToBigDecimal, safeDiv } from "./index";
+import { exponentToBigDecimal, safeDiv, safeDivInt } from "./index";
 
 // prettier-ignore
-const WETH_ADDRESS = "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91";
+const WETH_ADDRESS = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c".toLowerCase();
 // prettier-ignore
-const USDC_WETH_03_POOL = "0x291d9f9764c72c9ba6ff47b451a9f7885ebf9977";
+// const USDC_WETH_03_POOL = "0x36696169c63e42cd08ce11f5deebbcebae652050";
+const USDC_WETH_03_POOL = "0x2D774731D831cC3c6A1000fD8F4cefdCD256f955".toLowerCase();
 
 const STABLE_IS_TOKEN0 = "false" as string;
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 // prettier-ignore
-export let WHITELIST_TOKENS: string[] = "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91,0x493257fd37edb34451f62edf8d2a0c418852ba4c,0x2039bb4116b4efc145ec4f0e2ea75012d6c0f181,0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4,0xbbeb516fb02a01611cbbe0453fe3c580d7281011,0x32fd44bb869620c0ef993754c8a00be67c464806,0x703b52f2b28febcb60e1372858af5b18849fe867,0x3a287a06c66f9e95a56327185ca2bdf5f031cecd,0x4b9eb6c0b6ea15176bbf62841c6b2a8a398cb656,0x8e86e46278518efc1c5ced245cba2c7e3ef11557".split(",");
+// export let WHITELIST_TOKENS: string[] = "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91,0x493257fd37edb34451f62edf8d2a0c418852ba4c,0x2039bb4116b4efc145ec4f0e2ea75012d6c0f181,0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4,0xbbeb516fb02a01611cbbe0453fe3c580d7281011,0x32fd44bb869620c0ef993754c8a00be67c464806,0x703b52f2b28febcb60e1372858af5b18849fe867,0x3a287a06c66f9e95a56327185ca2bdf5f031cecd,0x4b9eb6c0b6ea15176bbf62841c6b2a8a398cb656,0x8e86e46278518efc1c5ced245cba2c7e3ef11557".split(",");
+export let WHITELIST_TOKENS: string[] = [
+  "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+  "0x55d398326f99059fF775485246999027B3197955",
+  "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+  "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+  "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+  "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+  "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+].map<string>((v: string) => v.toLowerCase());
 
 // prettier-ignore
-let STABLE_COINS: string[] = "0x493257fd37edb34451f62edf8d2a0c418852ba4c,0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4,0x2039bb4116b4efc145ec4f0e2ea75012d6c0f181,0x4b9eb6c0b6ea15176bbf62841c6b2a8a398cb656,0x8e86e46278518efc1c5ced245cba2c7e3ef11557".split(",");
+let STABLE_COINS: string[] = [
+  // "0x493257fd37edb34451f62edf8d2a0c418852ba4c",
+  // "0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4",
+  // "0x2039bb4116b4efc145ec4f0e2ea75012d6c0f181",
+  // "0x4b9eb6c0b6ea15176bbf62841c6b2a8a398cb656",
+  // "0x8e86e46278518efc1c5ced245cba2c7e3ef11557",
+
+  "0x55d398326f99059fF775485246999027B3197955",
+  "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+  "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+].map<string>((v: string) => v.toLowerCase());
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString("5");
 
-let Q192 = 2 ** 192;
+let Q192 = BigInt.fromI32(2).pow(192);
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
-  let num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal();
-  let denom = BigDecimal.fromString(Q192.toString());
-  let price1 = num.div(denom).times(exponentToBigDecimal(token0.decimals)).div(exponentToBigDecimal(token1.decimals));
+  let num = sqrtPriceX96.times(sqrtPriceX96);
+  log.warning(">>>>>> SQRT Num {}", [num.toString()]);
 
-  let price0 = safeDiv(BigDecimal.fromString("1"), price1);
-  return [price0, price1];
+  let qnom = BigInt.fromI32(2).pow(192);
+  let denom = Q192;
+  log.warning(">>>>>> SQRT Denom {}, Q:{}", [denom.toString(), qnom.toString()]);
+
+  let price1 = num.div(denom).times(token0.decimals).div(token1.decimals);
+  log.warning(">>>>>> SQRT Price 1 {}", [price1.toString()]);
+
+  let price0 = safeDivInt(BigInt.fromString("1"), price1);
+  log.warning(">>>>>> SQRT Price 0 {}", [price0.toString()]);
+
+  return [BigDecimal.fromString(price0.toString()), BigDecimal.fromString(price1.toString())];
 }
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL); // dai is token0
+  // let usdcPool = Pool.load(USDC_WETH_03_POOL); // dai is token0
+  // let usdcPool = Pool.loadInBlock("34944652"); // dai is token0
+
+  let usdcPool = Pool.load(USDC_WETH_03_POOL);
+
   if (usdcPool !== null) {
+    log.warning("**** Loaded Pool Price 0: {} - 1: {} ? Stable: {}, Pool: {}", [
+      usdcPool.token0Price.toString(),
+      usdcPool.token1Price.toString(),
+      STABLE_IS_TOKEN0,
+      usdcPool.id,
+    ]);
     if (STABLE_IS_TOKEN0 === "true") {
       return usdcPool.token0Price;
     }
     return usdcPool.token1Price;
   } else {
+    log.warning("**** Could Not Load Pool Price!", []);
     return ZERO_BD;
   }
 }
@@ -59,7 +98,7 @@ export function findEthPerToken(token: Token): BigDecimal {
   let priceSoFar = ZERO_BD;
   let bundle = Bundle.load("1");
   if (bundle === null) {
-    log.error("**** Could Not Load Bundle", []);
+    log.warning("**** Could Not Load Bundle", []);
     return BigDecimal.fromString("0");
   }
 
@@ -72,7 +111,7 @@ export function findEthPerToken(token: Token): BigDecimal {
       let poolAddress = whiteList[i];
       let pool = Pool.load(poolAddress);
       if (pool === null) {
-        log.error("**** Could Not Load Pool", []);
+        log.warning("**** Could Not Load Pool", []);
         return BigDecimal.fromString("0");
       }
 
@@ -81,7 +120,7 @@ export function findEthPerToken(token: Token): BigDecimal {
           // whitelist token is token1
           let token1 = Token.load(pool.token1);
           if (token1 === null) {
-            log.error("**** Could Not Load Token 1", []);
+            log.warning("**** Could Not Load Token 1", []);
             return BigDecimal.fromString("0");
           }
 
@@ -99,7 +138,7 @@ export function findEthPerToken(token: Token): BigDecimal {
         if (pool.token1 == token.id) {
           let token0 = Token.load(pool.token0);
           if (token0 === null) {
-            log.error("**** Could Not Load Token ", []);
+            log.warning("**** Could Not Load Token ", []);
             return BigDecimal.fromString("0");
           }
 
@@ -134,7 +173,7 @@ export function getTrackedAmountUSD(
 ): BigDecimal {
   let bundle = Bundle.load("1");
   if (bundle === null) {
-    log.error("**** Could Not Load Bundle", []);
+    log.warning("**** Could Not Load Bundle", []);
     return BigDecimal.fromString("0");
   }
 
@@ -211,7 +250,7 @@ export function getAdjustedAmounts(
   let derivedETH1 = token1.derivedETH;
   let bundle = Bundle.load("1");
   if (bundle === null) {
-    log.error("**** Could Not Load Bundle", []);
+    log.warning("**** Could Not Load Bundle", []);
     return {
       eth: BigDecimal.fromString("0"),
       usd: BigDecimal.fromString("0"),
@@ -239,6 +278,7 @@ export function getAdjustedAmounts(
   }
 
   // Define USD values based on ETH derived values.
+  log.warning("++++++ BUNDLE ADJ ID:{}, Price:{}", [bundle.id, bundle.ethPriceUSD.toString()]);
   let usd = eth.times(bundle.ethPriceUSD);
   let usdUntracked = ethUntracked.times(bundle.ethPriceUSD);
 

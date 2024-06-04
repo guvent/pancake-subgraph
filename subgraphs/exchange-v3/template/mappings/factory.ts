@@ -98,12 +98,12 @@ export function handlePoolCreated(event: PoolCreated): void {
   }
 
   // update white listed pools
-  if (WHITELIST_TOKENS.includes(token0.id)) {
+  if (WHITELIST_TOKENS.indexOf(token0.id) >= 0) {
     let newPools = token1.whitelistPools;
     newPools.push(pool.id);
     token1.whitelistPools = newPools;
   }
-  if (WHITELIST_TOKENS.includes(token1.id)) {
+  if (WHITELIST_TOKENS.indexOf(token1.id) >= 0) {
     let newPools = token0.whitelistPools;
     newPools.push(pool.id);
     token0.whitelistPools = newPools;

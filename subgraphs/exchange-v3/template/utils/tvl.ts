@@ -29,7 +29,7 @@ export function updateDerivedTVLAmounts(
 ): void {
   let bundle = Bundle.load("1");
   if (bundle === null) {
-    log.error("**** Could Not Load Bundle", []);
+    log.warning("**** Could Not Load Bundle", []);
     return;
   }
 

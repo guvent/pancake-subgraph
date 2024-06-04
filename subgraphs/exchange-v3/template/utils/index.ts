@@ -1,9 +1,11 @@
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, BigDecimal, ethereum, log } from "@graphprotocol/graph-ts";
 import { Transaction } from "../generated/schema";
 import { ONE_BI, ZERO_BI, ZERO_BD, ONE_BD } from "./constants";
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
+  log.warning("******* Expo Big Decimal: {} ", [decimals.toString()]);
+
   let bd = BigDecimal.fromString("1");
   for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
     bd = bd.times(BigDecimal.fromString("10"));
@@ -15,6 +17,15 @@ export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
 export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
   if (amount1.equals(ZERO_BD)) {
     return ZERO_BD;
+  } else {
+    return amount0.div(amount1);
+  }
+}
+
+// return 0 if denominator is 0 in division
+export function safeDivInt(amount0: BigInt, amount1: BigInt): BigInt {
+  if (amount1.equals(ZERO_BI)) {
+    return ZERO_BI;
   } else {
     return amount0.div(amount1);
   }
