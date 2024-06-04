@@ -20,11 +20,11 @@ import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
  * Tracks global aggregate data over daily windows
  * @param event
  */
-export function updatePancakeDayData(event: ethereum.Event): PancakeDayData {
+export function updatePancakeDayData(event: ethereum.Event): PancakeDayData | null {
   let pancake = Factory.load(FACTORY_ADDRESS);
   if (pancake === null) {
     log.warning("**** Could Not Load Pancake", []);
-    return new PancakeDayData("1");
+    return null;
   }
 
   let timestamp = event.block.timestamp;
@@ -33,7 +33,7 @@ export function updatePancakeDayData(event: ethereum.Event): PancakeDayData {
   let pancakeDayData = PancakeDayData.load(dayID.toString());
   if (pancakeDayData === null) {
     log.warning("**** Could Not Load Pancake Day Data", []);
-    return new PancakeDayData("1");
+    return null;
   }
 
   if (pancakeDayData === null) {
@@ -51,7 +51,7 @@ export function updatePancakeDayData(event: ethereum.Event): PancakeDayData {
   return pancakeDayData as PancakeDayData;
 }
 
-export function updatePoolDayData(event: ethereum.Event): PoolDayData {
+export function updatePoolDayData(event: ethereum.Event): PoolDayData | null {
   let timestamp = event.block.timestamp;
   let dayID = timestamp.div(BigInt.fromString("86400")); // get unique hour within unix history
   let dayStartTimestamp = dayID.plus(BigInt.fromString("86400")); // want the rounded effect
@@ -59,7 +59,7 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
   let pool = Pool.load(event.address.toHexString());
   if (pool === null) {
     log.warning("**** Could Not Load Pool", []);
-    return new PoolDayData("1");
+    return null;
   }
 
   let poolDayData = PoolDayData.load(dayPoolID);
@@ -104,7 +104,7 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
   return poolDayData as PoolDayData;
 }
 
-export function updatePoolHourData(event: ethereum.Event): PoolHourData {
+export function updatePoolHourData(event: ethereum.Event): PoolHourData | null {
   let timestamp = event.block.timestamp;
   let hourIndex = timestamp.div(BigInt.fromString("3600")); // get unique hour within unix history
   let hourStartUnix = hourIndex.plus(BigInt.fromString("3600")); // want the rounded effect
@@ -112,7 +112,7 @@ export function updatePoolHourData(event: ethereum.Event): PoolHourData {
   let pool = Pool.load(event.address.toHexString());
   if (pool === null) {
     log.warning("**** Could Not Load Pool", []);
-    return new PoolHourData("1");
+    return null;
   }
 
   let poolHourData = PoolHourData.load(hourPoolID);
@@ -158,11 +158,11 @@ export function updatePoolHourData(event: ethereum.Event): PoolHourData {
   return poolHourData as PoolHourData;
 }
 
-export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDayData {
+export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDayData | null {
   let bundle = Bundle.load("1");
   if (bundle === null) {
     log.warning("**** Could Not Load Bundle", []);
-    return new TokenDayData("1");
+    return null;
   }
 
   let timestamp = event.block.timestamp;
@@ -204,11 +204,11 @@ export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDa
   return tokenDayData as TokenDayData;
 }
 
-export function updateTokenHourData(token: Token, event: ethereum.Event): TokenHourData {
+export function updateTokenHourData(token: Token, event: ethereum.Event): TokenHourData | null {
   let bundle = Bundle.load("1");
   if (bundle === null) {
     log.warning("**** Could Not Load Bundle", []);
-    return new TokenHourData("1");
+    return null;
   }
 
   let timestamp = event.block.timestamp;
@@ -218,7 +218,7 @@ export function updateTokenHourData(token: Token, event: ethereum.Event): TokenH
   let tokenHourData = TokenHourData.load(tokenHourID);
   if (tokenHourData === null) {
     log.warning("**** Could Not Load Token Hour Data!", []);
-    return new TokenHourData("1");
+    return null;
   }
 
   let tokenPrice = token.derivedETH.times(bundle.ethPriceUSD);
