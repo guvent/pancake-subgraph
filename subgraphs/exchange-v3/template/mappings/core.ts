@@ -46,6 +46,12 @@ export function handlePoolInitialize(event: Initialize): void {
     event.params.sqrtPriceX96.toString(),
   ]);
 
+  log.warning("**** INIT Pool Price0:{}, Price1:{}, Pool: {}", [
+    pool.token0Price.toString(),
+    pool.token1Price.toString(),
+    pool.id,
+  ]);
+
   pool.sqrtPrice = event.params.sqrtPriceX96;
   pool.tick = BigInt.fromI32(event.params.tick);
   pool.save();

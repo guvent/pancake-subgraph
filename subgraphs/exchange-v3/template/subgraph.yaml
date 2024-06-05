@@ -12,7 +12,7 @@ dataSources:
     source:
       address: "0x2d774731d831cc3c6a1000fd8f4cefdcd256f955"
       abi: Pool
-      startBlock: 34944652
+      startBlock: 34944000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -20,19 +20,36 @@ dataSources:
       file: ./mappings/core.ts
       entities:
         - Pool
+        - Token
       abis:
         - name: Pool
           file: ./abis/pool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: NonfungiblePositionManager
+          file: ./abis/NonfungiblePositionManager.json
       eventHandlers:
         - event: Initialize(uint160,int24)
           handler: handlePoolInitialize
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24,uint128,uint128)
+          handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Burn(indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleBurn
+        - event: Flash(indexed address,indexed address,uint256,uint256,uint256,uint256)
+          handler: handleFlash
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
+        - event: CollectProtocol(indexed address,indexed address,uint128,uint128)
+          handler: handleCollectProtocol
   - kind: ethereum/contract
     name: Factory
     network: bsc
     source:
       address: "0x009c4ef7c0e0dd6bd1ea28417c01ea16341367c3"
       abi: Factory
-      startBlock: 33100000
+      startBlock: 32000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -61,7 +78,7 @@ dataSources:
     source:
       address: "0x4f0ece46362310ae93aee49c3713e77455eda1b8"
       abi: NonfungiblePositionManager
-      startBlock: 33100000
+      startBlock: 32000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

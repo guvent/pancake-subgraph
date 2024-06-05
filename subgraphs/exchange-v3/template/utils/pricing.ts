@@ -50,11 +50,14 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   let denom = Q192;
   log.warning(">>>>>> SQRT Denom {}, Q:{}", [denom.toString(), qnom.toString()]);
 
-  let price1 = num.div(denom).times(token0.decimals).div(token1.decimals);
-  log.warning(">>>>>> SQRT Price 1 {}", [price1.toString()]);
+  let div = num.div(denom);
+  let times = div.times(token0.decimals);
+  let price1 = times.div(token1.decimals);
+
+  log.warning(">>>>>> SQRT Price1:{}, Div:{}, Times:{}", [price1.toString(), div.toString(), times.toString()]);
 
   let price0 = safeDivInt(BigInt.fromString("1"), price1);
-  log.warning(">>>>>> SQRT Price 0 {}", [price0.toString()]);
+  log.warning(">>>>>> SQRT Price0:{}", [price0.toString()]);
 
   return [BigDecimal.fromString(price0.toString()), BigDecimal.fromString(price1.toString())];
 }
